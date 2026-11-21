@@ -1,0 +1,66 @@
+---
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/400-italic.css';
+import '@fontsource/ibm-plex-mono/600.css';
+import 'katex/dist/katex.min.css';
+import 'highlight.js/styles/github.css';
+import '../styles/global.css';
+
+import Seo from '../components/Seo.astro';
+import SiteHeader from '../components/SiteHeader';
+import { SITE } from '../site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  type?: 'website' | 'article';
+  datetime?: Date;
+}
+
+const { title, description = SITE.description, type, datetime } = Astro.props;
+const pageTitle = title ? `${title} | ${SITE.title}` : SITE.title;
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{pageTitle}</title>
+		<Seo title={title ?? SITE.title} description={description} type={type} datetime={datetime} />
+	</head>
+	<body class="bg-white font-mono text-[15px] text-black antialiased sm:text-base">
+		<div class="mx-auto w-full max-w-[68ch] px-6 pt-16 pb-32 sm:pt-28 sm:pb-48">
+			<SiteHeader />
+			<main class="mt-20 sm:mt-32">
+				<slot />
+			</main>
+		</div>
+		<script>
+			const timers = new WeakMap<Element, number>();
+
+			document.addEventListener('click', async (event) => {
+				const button = (event.target as Element).closest<HTMLButtonElement>('.copy-button');
+				if (!button) return;
+
+				const code = button.parentElement?.querySelector('pre');
+				const text = (code?.textContent ?? '').replace(/\n$/, '');
+				try {
+					await navigator.clipboard.writeText(text);
+					button.textContent = 'Copied';
+				} catch {
+					button.textContent = 'Failed';
+				}
+
+				clearTimeout(timers.get(button));
+				timers.set(button, window.setTimeout(() => (button.textContent = 'Copy'), 1500));
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,48 @@
+---
+import { SITE } from '../site';
+
+interface Props {
+  title: string;
+  description: string;
+  type?: 'website' | 'article';
+  datetime?: Date;
+}
+
+const { title, description, type = 'website', datetime } = Astro.props;
+
+// Without SITE.url, absolute URLs cannot be built, so those tags are skipped.
+const path = Astro.url.pathname.replace(/(.)\/$/, '$1');
+const url = SITE.url ? new URL(path, SITE.url).href : undefined;
+
+const jsonLd =
+  type === 'article' && datetime
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: title,
+        description,
+        datePublished: datetime.toISOString(),
+        inLanguage: SITE.lang,
+        ...(url && { url, mainEntityOfPage: url }),
+      }
+    : undefined;
+---
+
+<meta name="description" content={description} />
+{url && <link rel="canonical" href={url} />}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={SITE.title} />
+<meta property="og:locale" content={SITE.locale} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+{url && <meta property="og:url" content={url} />}
+{type === 'article' && datetime && (
+  <meta property="article:published_time" content={datetime.toISOString()} />
+)}
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+
+{jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />}

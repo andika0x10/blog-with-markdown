@@ -1,0 +1,29 @@
+---
+import { getCollection, render } from 'astro:content';
+
+import PostHeader from '../../components/PostHeader';
+import { excerpt } from '../../excerpt';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('posts');
+	return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Layout
+	title={post.data.title}
+	description={excerpt(post.body ?? '')}
+	type="article"
+	datetime={post.data.datetime}
+>
+	<article>
+		<PostHeader title={post.data.title} datetime={post.data.datetime} />
+		<div class="post mt-14">
+			<Content />
+		</div>
+	</article>
+</Layout>
